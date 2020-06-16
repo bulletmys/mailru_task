@@ -52,4 +52,7 @@ type wrapperParams struct {
 
 	//Очередь источников данных на обработку
 	queue []PathReader
+
+	//Размер буффера, считывающего данные
+	readBuffSize int
 }

@@ -9,12 +9,12 @@ import (
 
 func initWrapperParams(word string) *wrapperParams {
 	return &wrapperParams{
-		mu:       &sync.RWMutex{},
-		wg:       &sync.WaitGroup{},
-		word:     word,
-		goAmount: 0,
-		counts:   make([]PathValue, 0),
-		queue:    make([]PathReader, 0),
+		mu:           &sync.RWMutex{},
+		wg:           &sync.WaitGroup{},
+		word:         word,
+		counts:       make([]PathValue, 0),
+		queue:        make([]PathReader, 0),
+		readBuffSize: 4 * 1024,
 	}
 }
 
@@ -51,7 +51,7 @@ func (wc *WordCounterParams) WordCounter() {
 //Запускает функцию по подсчету слов в строке, записывает ее результат
 //и берет новую задачу из очереди, если она не пустая
 func (wp *wrapperParams) counterWrapper(reader PathReader) {
-	val, err := counter(*reader.Reader, wp.word)
+	val, err := counter(*reader.Reader, wp.word, wp.readBuffSize)
 
 	wp.mu.Lock()
 
@@ -77,19 +77,19 @@ func (wp *wrapperParams) counterWrapper(reader PathReader) {
 }
 
 //Функция по подсчету вхождений подстроки word в reader
-func counter(reader io.ReadCloser, word string) (int64, error) {
+func counter(reader io.ReadCloser, word string, buffSize int) (int64, error) {
 	defer reader.Close()
 
 	var count int64
 
-	buf := make([]byte, 4*1024)
+	buf := make([]byte, buffSize)
 	for {
 		n, err := reader.Read(buf)
 		if err != nil || n == 0 {
 			if err == io.EOF {
 				break
 			}
-			return 0, fmt.Errorf("Error while reading from source: %v\n", err)
+			return 0, fmt.Errorf("error while reading from source: %w", err)
 		}
 		count += int64(bytes.Count(buf, []byte(word)))
 	}

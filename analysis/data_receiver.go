@@ -18,7 +18,7 @@ func IsUrl(str string) bool {
 func getURLReadCloser(url string) (*io.ReadCloser, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't get data from URL: %w", err)
 	}
 	return &resp.Body, nil
 }
@@ -28,7 +28,7 @@ func getFileReadCloser(path string) (*io.ReadCloser, error) {
 	resp, err := os.Open(path)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't open file: %w", err)
 	}
 	var reader io.ReadCloser = resp
 
@@ -40,19 +40,19 @@ func GetData(paths []string, dataChan chan<- PathReader) []error {
 	dataErrors := make([]error, 0)
 	var err error
 
-	for _, elem := range paths {
+	for _, path := range paths {
 		var reader *io.ReadCloser
 
-		if IsUrl(elem) {
-			reader, err = getURLReadCloser(elem)
+		if IsUrl(path) {
+			reader, err = getURLReadCloser(path)
 		} else {
-			reader, err = getFileReadCloser(elem)
+			reader, err = getFileReadCloser(path)
 		}
 		if err != nil {
-			dataErrors = append(dataErrors, fmt.Errorf("Failed to get data from resource: %v\n", elem))
-			continue
+			dataErrors = append(dataErrors, fmt.Errorf("failed to get data from resource %v: %w", path, err))
+		} else {
+			dataChan <- PathReader{Path: path, Reader: reader}
 		}
-		dataChan <- PathReader{Path: elem, Reader: reader}
 	}
 	return dataErrors
 }
