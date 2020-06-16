@@ -27,7 +27,7 @@ func (wc *WordCounterParams) WordCounter() {
 	for {
 		select {
 		case reader := <-wc.DataChan:
-			//fmt.Println(runtime.NumGoroutine())
+
 			p.mu.Lock()
 
 			if p.goAmount < wc.GoMax {
