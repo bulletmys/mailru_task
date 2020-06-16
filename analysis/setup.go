@@ -1,6 +1,6 @@
 package analysis
 
-//Инициализация и запуск обработчика
+//Инициализация и запуск обработчика.
 func RunWordAnalysis(paths []string, k int, word string) ([]PathValue, []error) {
 	dataChan := make(chan PathReader)
 	quitChan := make(chan bool)
