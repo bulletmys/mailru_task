@@ -1,7 +1,7 @@
 package analysis
 
-//Инициализация и запуск обработчика
-func RunWordAnalysis(paths []string, k int, word string) []PathValue {
+//Инициализация и запуск обработчика.
+func RunWordAnalysis(paths []string, k int, word string) ([]PathValue, []error) {
 	dataChan := make(chan PathReader)
 	quitChan := make(chan bool)
 	resChan := make(chan []PathValue)
@@ -17,9 +17,9 @@ func RunWordAnalysis(paths []string, k int, word string) []PathValue {
 	//запуск планировщика для обслуживания дочерних горутин-обработчиков
 	go WCP.WordCounter()
 
-	GetData(paths, dataChan)
+	dataErrors := GetData(paths, dataChan)
 
 	quitChan <- true
 
-	return <-resChan
+	return <-resChan, dataErrors
 }
